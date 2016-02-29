@@ -32,6 +32,7 @@ Before first run
 ----------------
 You need to create credentials so the application can login to GMail. Follow 
 these steps:
+
 1. Go to https://console.developers.google.com/project
 2. Click 'Create project' and enter name of the project, e.g. 'EWS Gmail Proxy'
 3. Click 'Use Google APIs'
