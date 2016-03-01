@@ -5,9 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
-import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
@@ -33,6 +34,7 @@ public final class Run {
 	private static GmailClient gmailClient;
 	private static String appName;
 	private static String appVersion;
+	private static final Logger LOG = Logger.getLogger(Run.class.getSimpleName());
 	
 	static {
 		options = new Options();
@@ -124,7 +126,12 @@ public final class Run {
 		EWSClient ews = new EWSClient(config.getProperty("ewsUrl"), config.getProperty("ewsUsername"), config.getProperty("ewsPassword"));
 		
 		Folder inbox = ews.getInbox();
-		System.out.println("EWS: Total/Unread = " + inbox.getTotalCount() + "/" + inbox.getUnreadCount());
+		
+		LOG.info(String.format("Querying EWS at %s with username %s: total/unread messages = %s/%s", 
+				config.getProperty("ewsUrl"), 
+				config.getProperty("ewsUsername"), 
+				inbox.getTotalCount(), 
+				inbox.getUnreadCount()));
 		
 		for (Item i : inbox.findItems(new ItemView(100,0))) {
 			EmailMessage e = (EmailMessage)i;
