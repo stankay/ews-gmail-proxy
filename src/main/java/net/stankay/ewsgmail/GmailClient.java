@@ -163,11 +163,14 @@ public class GmailClient {
         labelIdsList.add("INBOX");
         labelIdsList.add("UNREAD");
 
-        if (labelIds != null && !labelIds.trim().isEmpty()) {
+        if (labelIds != null) {
         	String[] labels = labelIds.split(",");
         
 	        for (String label : labels) {
-	        	labelIdsList.add(label.trim());
+	        	label = label.trim();
+	        	if (!label.isEmpty() && label.matches("^[A-Za-z0-9_]+$")) {
+	        		labelIdsList.add(label.trim());
+	        	}
 	        }
         }
         

@@ -45,4 +45,30 @@ public class GmailClientTest {
 		assertTrue(output.contains("Label_1"));
 		assertTrue(output.contains("Label_2"));
 	}
+
+	@Test
+	public void generateLabelListComma() {
+		List<String> output = GmailClient.generateLabelList(",");
+		assertEquals(2, output.size());
+		assertTrue(output.contains("INBOX"));
+		assertTrue(output.contains("UNREAD"));
+	}
+
+	@Test
+	public void generateLabelListComma2() {
+		List<String> output = GmailClient.generateLabelList(" ,Label_1, ");
+		assertEquals(3, output.size());
+		assertTrue(output.contains("INBOX"));
+		assertTrue(output.contains("UNREAD"));
+		assertTrue(output.contains("Label_1"));
+	}
+
+	@Test
+	public void generateLabelListInvalidChars() {
+		List<String> output = GmailClient.generateLabelList("Label#1");
+		assertEquals(2, output.size());
+		assertTrue(output.contains("INBOX"));
+		assertTrue(output.contains("UNREAD"));
+	}
+
 }
