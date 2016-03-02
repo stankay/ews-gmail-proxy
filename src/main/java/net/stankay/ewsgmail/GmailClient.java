@@ -146,19 +146,24 @@ public class GmailClient {
         
         Message newMes = new Message().setRaw(base64);
         
-        
-        String[] labels = labelIds.split(",");
-        
-        List<String> labelIdsList = new ArrayList<>();
-        labelIdsList.add("INBOX");
-        labelIdsList.add("UNREAD");
-        
-        for (String label : labels) {
-        	labelIdsList.add(label.trim());
-        }
-        
-        newMes.setLabelIds(labelIdsList);
+        newMes.setLabelIds(generateLabelList(labelIds));
         
 		return service.users().messages().insert(emailAddress, newMes).execute();
     }
+
+	public static List<String> generateLabelList(String labelIds) {
+        List<String> labelIdsList = new ArrayList<>();
+        labelIdsList.add("INBOX");
+        labelIdsList.add("UNREAD");
+
+        if (labelIds != null && !labelIds.trim().isEmpty()) {
+        	String[] labels = labelIds.split(",");
+        
+	        for (String label : labels) {
+	        	labelIdsList.add(label.trim());
+	        }
+        }
+        
+        return labelIdsList;
+	}
 }
