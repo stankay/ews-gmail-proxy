@@ -151,6 +151,13 @@ public class GmailClient {
 		return service.users().messages().insert(emailAddress, newMes).execute();
     }
 
+    /**
+     * Transform comma-separated list of GMail labels into List<String>.
+     * Add two default labels: INBOX, UNREAD
+     * 
+     * @param labelIds Comma-separated list of label ids
+     * @return java.util.List of label ids 
+     */
 	public static List<String> generateLabelList(String labelIds) {
         List<String> labelIdsList = new ArrayList<>();
         labelIdsList.add("INBOX");
