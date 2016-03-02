@@ -50,6 +50,7 @@
 							<tasks>
 								<copy file="src/main/resources/ews-gmail-proxy.properties" toDir="${project.build.directory}/${project.artifactId}" />
 								<copy file="src/main/resources/ews-gmail-proxy.sh" toDir="${project.build.directory}/${project.artifactId}" />
+								<copy file="src/main/resources/ews-gmail-proxy.bat" toDir="${project.build.directory}/${project.artifactId}" />
 								<copy file="${project.build.directory}/${project.artifactId}.jar" toDir="${project.build.directory}/${project.artifactId}" />
 								<chmod file="${project.build.directory}/${project.artifactId}/${project.artifactId}.sh" perm="755" />
 							</tasks>
