@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -123,7 +124,18 @@ public final class Run {
      * @throws Exception
      */
     private static void insertMessage() throws Exception {
-        EWSClient ews = new EWSClient(config.getProperty("ewsUrl"), config.getProperty("ewsUsername"), config.getProperty("ewsPassword"));
+        EWSClient ews = null;
+        try {
+            ews = new EWSClient(config.getProperty("ewsUrl"), config.getProperty("ewsUsername"), config.getProperty("ewsPassword"));
+        } catch (Exception e) {
+            String errorMessage = "From: "+config.getProperty("gmailAddress")+"\n";
+            errorMessage += "To: "+config.getProperty("gmailAddress")+"\n";
+            errorMessage += "Subject: ews-gmail-proxy - Problem connecting to EWS\n";
+            errorMessage += "\nThere was a problem connecting to Exchange Web Services";
+            gmailClient.insertUnreadMessage(errorMessage + ": " + e.getMessage(), config.getProperty("gmailLabelIds"));
+            LOG.log(Level.SEVERE, errorMessage, e);
+            return;
+        }
 
         Folder inbox = ews.getInbox();
 
