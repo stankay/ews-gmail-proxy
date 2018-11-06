@@ -22,162 +22,162 @@ import microsoft.exchange.webservices.data.property.complex.MimeContent;
 import microsoft.exchange.webservices.data.search.ItemView;
 
 /**
- * MS Exchange -> Gmail proxy that fetches mails from Exchange using 
- * Exchange Web Services and stores them into chosen gmail account's Inbox  
+ * MS Exchange -> Gmail proxy that fetches mails from Exchange using
+ * Exchange Web Services and stores them into chosen gmail account's Inbox
  */
 public final class Run {
 
-	private static Options options;
-	private static Properties config = new Properties();
-	private static CommandLine cmd;
-	private static HelpFormatter formatter = new HelpFormatter();
-	private static GmailClient gmailClient;
-	private static String appName;
-	private static String appVersion;
-	private static final Logger LOG = Logger.getLogger(Run.class.getSimpleName());
-	
-	static {
-		options = new Options();
-		options.addOption("c", "config" , true , "Path to config file, mandatory");
-		options.addOption("f", "fetch"  , false, "Fetch unread e-mails from EWS and save them to GMail");
-		options.addOption("h", "help"   , false, "Print this help");
-		options.addOption("l", "labels" , false, "List GMail labels");
-		options.addOption("s", "secret" , true , "Path to file with GMail secret, mandatory");
-		options.addOption("v", "version", false, "Display application version");
-	}
+    private static Options options;
+    private static Properties config = new Properties();
+    private static CommandLine cmd;
+    private static HelpFormatter formatter = new HelpFormatter();
+    private static GmailClient gmailClient;
+    private static String appName;
+    private static String appVersion;
+    private static final Logger LOG = Logger.getLogger(Run.class.getSimpleName());
 
-	private Run() {}
-	
-	/**
-	 * Validate command line and print eventual error messages
-	 * @param args Command line args
-	 */
-	private static void processCommandLine(String[] args) {
-		if (args.length < 1 || cmd.hasOption('h')) {
-			formatter.printHelp("ews-gmail-proxy [args]", options);
-			System.exit(0);
-		}
+    static {
+        options = new Options();
+        options.addOption("c", "config" , true , "Path to config file, mandatory");
+        options.addOption("f", "fetch"  , false, "Fetch unread e-mails from EWS and save them to GMail");
+        options.addOption("h", "help"   , false, "Print this help");
+        options.addOption("l", "labels" , false, "List GMail labels");
+        options.addOption("s", "secret" , true , "Path to file with GMail secret, mandatory");
+        options.addOption("v", "version", false, "Display application version");
+    }
 
-		if (!cmd.hasOption('c')) {
-			printHelp("Missing config file", -2);
-		}
+    private Run() {}
 
-		if (!cmd.hasOption('s')) {
-			printHelp("Missing GMail secret file", -3);
-		}
+    /**
+     * Validate command line and print eventual error messages
+     * @param args Command line args
+     */
+    private static void processCommandLine(String[] args) {
+        if (args.length < 1 || cmd.hasOption('h')) {
+            formatter.printHelp("ews-gmail-proxy [args]", options);
+            System.exit(0);
+        }
 
-		if (!cmd.hasOption('f') && !cmd.hasOption('l') || cmd.hasOption('f') && cmd.hasOption('l')) {
-			printHelp("Choose action, either -f or -l", -4);
-		}
-	}
+        if (!cmd.hasOption('c')) {
+            printHelp("Missing config file", -2);
+        }
 
-	/**
-	 * Read config file and load into Properties structure.
-	 * Then validate config
-	 * 
-	 * @throws IOException
-	 */
-	private static void processConfig() throws IOException {
-		try {
-			config.load(new FileInputStream(new File(cmd.getOptionValue('c'))));	
-		} catch (FileNotFoundException e) {
-			printHelp(e.getMessage(), -5);
-		}
-		
-		if (!configIsValid()) {
-			System.err.println("Error: Config is invalid: " + cmd.getOptionValue('c'));
-			System.exit(-1);
-		}
-	}
+        if (!cmd.hasOption('s')) {
+            printHelp("Missing GMail secret file", -3);
+        }
 
-	/**
-	 * Validate if passed config has all the required keys
-	 * 
-	 * @return True if it contains all required key, false otherwise
-	 */
-	private static boolean configIsValid() {
-		return     config.containsKey("ewsUrl") 
-				&& config.containsKey("ewsUsername") 
-				&& config.containsKey("ewsPassword") 
-				&& config.containsKey("gmailAddress") 
-				&& config.containsKey("gmailLabelIds");
-	}
-	
-	/**
-	 * Print error message and usage information to stderr.
-	 * Return passed return code.
-	 * 
-	 * @param message Text of error to be displayed 
-	 * @param returnCode Value of return code to be returned
-	 */
-	private static void printHelp(String message, int returnCode) {
-		System.err.println(message);
-		System.err.println();
-		formatter.printHelp(appName + " [args]", options);
-		System.exit(returnCode);
-	}
+        if (!cmd.hasOption('f') && !cmd.hasOption('l') || cmd.hasOption('f') && cmd.hasOption('l')) {
+            printHelp("Choose action, either -f or -l", -4);
+        }
+    }
 
-	/**
-	 * Fetch EWS messages, upload them to GMail
-	 * 
-	 * @throws Exception
-	 */
-	private static void insertMessage() throws Exception {
-		EWSClient ews = new EWSClient(config.getProperty("ewsUrl"), config.getProperty("ewsUsername"), config.getProperty("ewsPassword"));
-		
-		Folder inbox = ews.getInbox();
-		
-		LOG.info(String.format("Querying EWS at %s with username %s: total/unread messages = %s/%s", 
-				config.getProperty("ewsUrl"), 
-				config.getProperty("ewsUsername"), 
-				inbox.getTotalCount(), 
-				inbox.getUnreadCount()));
-		
-		for (Item i : inbox.findItems(new ItemView(100,0))) {
-			EmailMessage e = (EmailMessage)i;
-			
-			if (!e.getIsRead()) {
-				e.load(new PropertySet(ItemSchema.MimeContent));
-				MimeContent mimeContent = e.getMimeContent();
-				
-				gmailClient.insertUnreadMessage(new String(mimeContent.getContent()), config.getProperty("gmailLabelIds"));
-				
-				e.setIsRead(true);
-				e.update(ConflictResolutionMode.AutoResolve);
-			}
-		}
-	}
+    /**
+     * Read config file and load into Properties structure.
+     * Then validate config
+     *
+     * @throws IOException
+     */
+    private static void processConfig() throws IOException {
+        try {
+            config.load(new FileInputStream(new File(cmd.getOptionValue('c'))));
+        } catch (FileNotFoundException e) {
+            printHelp(e.getMessage(), -5);
+        }
 
-	public static void main(String[] args) throws Exception {
-		readVersion();
+        if (!configIsValid()) {
+            System.err.println("Error: Config is invalid: " + cmd.getOptionValue('c'));
+            System.exit(-1);
+        }
+    }
 
-		try {
-			cmd = new DefaultParser().parse( options, args);
-		} catch (Exception e) {
-			printHelp(e.getMessage(), -1);
-		}
+    /**
+     * Validate if passed config has all the required keys
+     *
+     * @return True if it contains all required key, false otherwise
+     */
+    private static boolean configIsValid() {
+        return     config.containsKey("ewsUrl")
+                && config.containsKey("ewsUsername")
+                && config.containsKey("ewsPassword")
+                && config.containsKey("gmailAddress")
+                && config.containsKey("gmailLabelIds");
+    }
 
-		if (cmd.hasOption("v")) {
-			System.out.println(appName + " " + appVersion);
-			return;
-		}
-		
-		processCommandLine(args);
-		processConfig();
+    /**
+     * Print error message and usage information to stderr.
+     * Return passed return code.
+     *
+     * @param message Text of error to be displayed
+     * @param returnCode Value of return code to be returned
+     */
+    private static void printHelp(String message, int returnCode) {
+        System.err.println(message);
+        System.err.println();
+        formatter.printHelp(appName + " [args]", options);
+        System.exit(returnCode);
+    }
 
-		gmailClient = new GmailClient(config.getProperty("gmailAddress"), cmd.getOptionValue('s'));
-		
-		if (cmd.hasOption("f")) {
-			insertMessage();
-		} else if (cmd.hasOption("l")) {
-			gmailClient.listLabels();
-		}
-	}
+    /**
+     * Fetch EWS messages, upload them to GMail
+     *
+     * @throws Exception
+     */
+    private static void insertMessage() throws Exception {
+        EWSClient ews = new EWSClient(config.getProperty("ewsUrl"), config.getProperty("ewsUsername"), config.getProperty("ewsPassword"));
 
-	private static void readVersion() throws IOException {
-		Properties versionProps = new Properties();
-		versionProps.load(Run.class.getResourceAsStream("/version.properties"));
-		appVersion = versionProps.getProperty("appVersion");
-		appName = versionProps.getProperty("appName");
-	}
+        Folder inbox = ews.getInbox();
+
+        LOG.info(String.format("Querying EWS at %s with username %s: total/unread messages = %s/%s",
+                config.getProperty("ewsUrl"),
+                config.getProperty("ewsUsername"),
+                inbox.getTotalCount(),
+                inbox.getUnreadCount()));
+
+        for (Item i : inbox.findItems(new ItemView(100,0))) {
+            EmailMessage e = (EmailMessage)i;
+
+            if (!e.getIsRead()) {
+                e.load(new PropertySet(ItemSchema.MimeContent));
+                MimeContent mimeContent = e.getMimeContent();
+
+                gmailClient.insertUnreadMessage(new String(mimeContent.getContent()), config.getProperty("gmailLabelIds"));
+
+                e.setIsRead(true);
+                e.update(ConflictResolutionMode.AutoResolve);
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        readVersion();
+
+        try {
+            cmd = new DefaultParser().parse( options, args);
+        } catch (Exception e) {
+            printHelp(e.getMessage(), -1);
+        }
+
+        if (cmd.hasOption("v")) {
+            System.out.println(appName + " " + appVersion);
+            return;
+        }
+
+        processCommandLine(args);
+        processConfig();
+
+        gmailClient = new GmailClient(config.getProperty("gmailAddress"), cmd.getOptionValue('s'));
+
+        if (cmd.hasOption("f")) {
+            insertMessage();
+        } else if (cmd.hasOption("l")) {
+            gmailClient.listLabels();
+        }
+    }
+
+    private static void readVersion() throws IOException {
+        Properties versionProps = new Properties();
+        versionProps.load(Run.class.getResourceAsStream("/version.properties"));
+        appVersion = versionProps.getProperty("appVersion");
+        appName = versionProps.getProperty("appName");
+    }
 }

@@ -44,7 +44,7 @@ public class GmailClient {
 
     /** Global instance of the HTTP transport. */
     private HttpTransport HTTP_TRANSPORT;
-    
+
     /** Global instance of the scopes required by this quickstart.
      *
      * If modifying these scopes, delete your previously saved credentials
@@ -52,13 +52,13 @@ public class GmailClient {
      */
     private static final List<String> SCOPES = Arrays.asList(GmailScopes.GMAIL_COMPOSE, GmailScopes.GMAIL_INSERT, GmailScopes.GMAIL_LABELS, GmailScopes.GMAIL_MODIFY, GmailScopes.GMAIL_READONLY);
 
-	private final String emailAddress;
+    private final String emailAddress;
 
-	private final String pathToSecret;
+    private final String pathToSecret;
 
     public GmailClient(String emailAddress, String pathToSecret) {
-    	this.emailAddress = emailAddress;
-    	this.pathToSecret = pathToSecret;
+        this.emailAddress = emailAddress;
+        this.pathToSecret = pathToSecret;
 
         try {
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -67,9 +67,9 @@ public class GmailClient {
             t.printStackTrace();
             System.exit(1);
         }
-	}
+    }
 
-	/**
+    /**
      * Creates an authorized Credential object.
      * @return an authorized Credential object.
      * @throws IOException
@@ -93,7 +93,7 @@ public class GmailClient {
 
     /**
      * Build and return an authorized Gmail client service.
-     * @param emailAddress 
+     * @param emailAddress
      * @return an authorized Gmail client service
      * @throws IOException
      */
@@ -106,15 +106,15 @@ public class GmailClient {
 
     /**
      * List labels that have been created for given account
-     * 
+     *
      * @param emailAddress GMail e-mail address
-     * @throws IOException 
+     * @throws IOException
      */
     public void listLabels() throws IOException {
         Gmail service = getGmailService();
-    	
+
         ListLabelsResponse listResponse = service.users().labels().list(emailAddress).execute();
-        
+
         List<Label> labels = listResponse.getLabels();
         if (labels.isEmpty()) {
             System.out.println("No labels found.");
@@ -125,13 +125,13 @@ public class GmailClient {
             }
         }
     }
-    
+
     /**
      * Insert message into given mailbox.
      * 1. Insert it into Inbox of the account
      * 2. Mark as unread
      * 3. Label with labels from configuration
-     * 
+     *
      * @param emailAddress GMail address to use for inserting
      * @param rawMessage RFC2822 message
      * @param labelIds Comma-separated list of labels to be applied
@@ -143,37 +143,37 @@ public class GmailClient {
 
         String base64 = java.util.Base64.getEncoder().encodeToString(rawMessage.getBytes());
         base64 = base64.replace("/", "_").replace("+", "-");
-        
+
         Message newMes = new Message().setRaw(base64);
-        
+
         newMes.setLabelIds(generateLabelList(labelIds));
-        
-		return service.users().messages().insert(emailAddress, newMes).execute();
+
+        return service.users().messages().insert(emailAddress, newMes).execute();
     }
 
     /**
      * Transform comma-separated list of GMail labels into List<String>.
      * Add two default labels: INBOX, UNREAD
-     * 
+     *
      * @param labelIds Comma-separated list of label ids
-     * @return java.util.List of label ids 
+     * @return java.util.List of label ids
      */
-	public static List<String> generateLabelList(String labelIds) {
+    public static List<String> generateLabelList(String labelIds) {
         List<String> labelIdsList = new ArrayList<>();
         labelIdsList.add("INBOX");
         labelIdsList.add("UNREAD");
 
         if (labelIds != null) {
-        	String[] labels = labelIds.split(",");
-        
-	        for (String label : labels) {
-	        	label = label.trim();
-	        	if (!label.isEmpty() && label.matches("^[A-Za-z0-9_]+$")) {
-	        		labelIdsList.add(label.trim());
-	        	}
-	        }
+            String[] labels = labelIds.split(",");
+
+            for (String label : labels) {
+                label = label.trim();
+                if (!label.isEmpty() && label.matches("^[A-Za-z0-9_]+$")) {
+                    labelIdsList.add(label.trim());
+                }
+            }
         }
-        
+
         return labelIdsList;
-	}
+    }
 }
