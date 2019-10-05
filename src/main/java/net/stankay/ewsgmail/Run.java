@@ -132,7 +132,11 @@ public final class Run {
             errorMessage += "To: "+config.getProperty("gmailAddress")+"\n";
             errorMessage += "Subject: ews-gmail-proxy - Problem connecting to EWS\n";
             errorMessage += "\nThere was a problem connecting to Exchange Web Services";
-            gmailClient.insertUnreadMessage(errorMessage + ": " + e.getMessage(), config.getProperty("gmailLabelIds"));
+
+            if (config.getProperty("reportErrorsToGmail") != null && Boolean.parseBoolean(config.getProperty("reportErrorsToGmail"))) {
+                gmailClient.insertUnreadMessage(errorMessage + ": " + e.getMessage(), config.getProperty("gmailLabelIds"));
+            }
+
             LOG.log(Level.SEVERE, errorMessage, e);
             return;
         }
