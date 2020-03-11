@@ -27,21 +27,41 @@
 
         <plugins>
             <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>4.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>copy-dependencies</goal>
+                            <goal>single</goal>
                         </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/${project.artifactId}/lib</outputDirectory>
-                            <includeScope>compile</includeScope>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>net.stankay.ewsgmail.Run</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
-
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -49,19 +69,8 @@
                         <phase>package</phase>
                         <configuration>
                             <tasks>
-                                <copy
-                                    file="src/main/resources/ews-gmail-proxy.properties"
-                                    toDir="${project.build.directory}/${project.artifactId}" />
-                                <copy file="src/main/resources/ews-gmail-proxy.sh"
-                                    toDir="${project.build.directory}/${project.artifactId}" />
-                                <copy file="src/main/resources/ews-gmail-proxy.bat"
-                                    toDir="${project.build.directory}/${project.artifactId}" />
-                                <copy
-                                    file="${project.build.directory}/${project.artifactId}.jar"
-                                    toDir="${project.build.directory}/${project.artifactId}" />
-                                <chmod
-                                    file="${project.build.directory}/${project.artifactId}/${project.artifactId}.sh"
-                                    perm="755" />
+                                <delete file="${project.build.directory}/${project.artifactId}.jar" />
+                                <copy file="ews-gmail-proxy.properties" toDir="${project.build.directory}" />
                             </tasks>
                         </configuration>
                         <goals>

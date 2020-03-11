@@ -18,9 +18,7 @@ Prerequisities
 
 Building
 ---------
-App is built using Maven. Use `mvn package` to build the distribution. Then use
-script `ews-gmail-proxy.sh` or `ews-gmail-proxy.bat` to run the app depending on
-your platform.
+App is built using Maven. Use `mvn package` to build the distribution.
 
 Configuration
 -------------
@@ -52,7 +50,7 @@ you need to confirm that you want to allow this app to access your account in a
 browser. After initial confirmation this is no longer necessary, unless you
 delete folder `HOME/.credentials/ews-gmail-proxy`.
 
-For the first run, run command ` ews-gmail-proxy.sh -c [path to config] -s
+For the first run, run command `java -jar ews-gmail-proxy-jar-with-dependencies.jar -c [path to config] -s
 [path to JSON with secret] -l`. This command should display a list of labels
 created for given GMail account. You can now configure `gmailLabelIds` config
 option.
