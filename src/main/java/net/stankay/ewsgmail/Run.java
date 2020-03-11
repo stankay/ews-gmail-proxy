@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +45,7 @@ public final class Run {
         options.addOption("f", "fetch"  , false, "Fetch unread e-mails from EWS and save them to GMail");
         options.addOption("h", "help"   , false, "Print this help");
         options.addOption("l", "labels" , false, "List GMail labels");
+        options.addOption("r", "readfile", true, "Read e-mail from file and store it to GMail");
         options.addOption("s", "secret" , true , "Path to file with GMail secret, mandatory");
         options.addOption("v", "version", false, "Display application version");
     }
@@ -67,8 +70,12 @@ public final class Run {
             printHelp("Missing GMail secret file", -3);
         }
 
-        if (!cmd.hasOption('f') && !cmd.hasOption('l') || cmd.hasOption('f') && cmd.hasOption('l')) {
-            printHelp("Choose action, either -f or -l", -4);
+        if (!cmd.hasOption('f') && !cmd.hasOption('l') && !cmd.hasOption('r')
+                || (cmd.hasOption('f') && cmd.hasOption('l'))
+                || (cmd.hasOption('f') && cmd.hasOption('r'))
+                || (cmd.hasOption('l') && cmd.hasOption('r'))
+                ) {
+            printHelp("Choose action, must be exactly one of -f, -l, -r", -4);
         }
     }
 
@@ -164,6 +171,22 @@ public final class Run {
         }
     }
 
+    /**
+     * Read e-mail message from file and put into GMail inbox
+     */
+    private static void readAndInsertMessage() {
+
+        String filename = cmd.getOptionValue('r');
+
+        try {
+            byte[] content = Files.readAllBytes(Paths.get(filename));
+            gmailClient.insertUnreadMessage(new String(content), config.getProperty("gmailLabelIds"));
+        } catch (Exception e) {
+            System.err.println("ERROR: could not read " + filename + ". " + e);
+            System.exit(-5);
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         readVersion();
 
@@ -185,6 +208,8 @@ public final class Run {
 
         if (cmd.hasOption("f")) {
             insertMessage();
+        } if (cmd.hasOption("r")) {
+            readAndInsertMessage();
         } else if (cmd.hasOption("l")) {
             gmailClient.listLabels();
         }
